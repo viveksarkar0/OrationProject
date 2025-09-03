@@ -3,24 +3,38 @@
 **Live Demo**: https://oration-project.vercel.app/chat  
 **GitHub Repository**: https://github.com/viveksarkar0/OrationProject
 
-**Loom Recording**: https://www.loom.com/share/c3049a30dbd246d9beb1dc74a88f0d8a?sid=a50cb66e-1345-4e46-a0d3-1ec3d54f07bd
+## Quick Tech Stack
+
+**Frontend**: Next.js 15 + TypeScript + TailwindCSS + ShadCN/UI + Framer Motion  
+**Backend**: tRPC + TanStack Query + NextAuth.js + Prisma ORM  
+**Database**: PostgreSQL (Neon) with proper relationships and indexing  
+**AI**: Google Gemini 1.5 Flash for intelligent career counseling responses  
+**Deployment**: Vercel with automatic CI/CD, SSL, and global CDN  
 
 ## Project Overview
 
 A production-ready AI-powered career counseling platform built with modern web technologies, featuring real-time chat, session management, and intelligent career guidance powered by Google's Gemini AI.
 
-## Architecture & Tech Stack
+## Key Features
 
-### Frontend
+✅ **AI Career Counselor**: Intelligent responses using Google Gemini 1.5 Flash  
+✅ **Session Management**: Persistent chat history with automatic session creation  
+✅ **Authentication**: Secure Google OAuth with NextAuth.js  
+✅ **Real-time Chat**: Professional UI with loading states and animations  
+✅ **Responsive Design**: Mobile-first approach with desktop enhancements  
+✅ **Production Ready**: Deployed on Vercel with PostgreSQL database  
+
+## Architecture Overview
+
+### Frontend Stack
 - **Next.js 15** with App Router and TypeScript
-- **React 19** with Server/Client Components
+- **React 19** with Server/Client Components  
 - **TailwindCSS 4** + ShadCN/UI for modern design
 - **Framer Motion** for smooth animations
-- **Responsive Design** optimized for mobile and desktop
 
-### Backend & API
+### Backend Stack
 - **tRPC** for end-to-end type-safe APIs
-- **TanStack Query** for efficient data fetching and caching
+- **TanStack Query** for efficient data fetching
 - **NextAuth.js** with Google OAuth authentication
 - **Prisma ORM** with PostgreSQL database
 
