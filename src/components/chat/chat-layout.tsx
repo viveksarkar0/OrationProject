@@ -19,7 +19,7 @@ export function ChatLayout() {
         />
         <main className={cn(
           "flex-1 flex flex-col transition-all duration-300",
-          sidebarOpen ? "ml-80" : "ml-0"
+          sidebarOpen ? "ml-96" : "ml-0"
         )}>
           <ChatInterface />
         </main>

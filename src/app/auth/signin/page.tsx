@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Icons } from '@/components/ui/icons'
 import { GradientBg } from '@/components/ui/gradient-bg'
 import { useEffect, useState } from 'react'
+import type { LiteralUnion, ClientSafeProvider } from 'next-auth/react'
+import type { BuiltInProviderType } from 'next-auth/providers/index'
 
 export default function SignIn() {
-  const [providers, setProviders] = useState<any>(null)
+  const [providers, setProviders] = useState<Record<LiteralUnion<BuiltInProviderType, string>, ClientSafeProvider> | null>(null)
 
   useEffect(() => {
     const setAuthProviders = async () => {
@@ -32,7 +34,7 @@ export default function SignIn() {
         
         <div className="mt-8 space-y-4">
           {providers &&
-            Object.values(providers).map((provider: any) => (
+            Object.values(providers).map((provider) => (
               <Button
                 key={provider.name}
                 onClick={() => signIn(provider.id, { callbackUrl: '/chat' })}
