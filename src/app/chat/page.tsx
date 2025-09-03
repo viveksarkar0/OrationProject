@@ -2,9 +2,9 @@
 
 import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
-import { LandingPage } from '@/components/landing-page'
+import { ChatLayout } from '@/components/chat/chat-layout'
 
-export default function Home() {
+export default function ChatPage() {
   const { data: session, status } = useSession()
 
   if (status === 'loading') {
@@ -15,9 +15,9 @@ export default function Home() {
     )
   }
 
-  if (session) {
-    redirect('/chat')
+  if (!session) {
+    redirect('/')
   }
 
-  return <LandingPage />
+  return <ChatLayout />
 }
