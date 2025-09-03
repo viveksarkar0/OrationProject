@@ -64,7 +64,10 @@ export function ChatLayout() {
           // On mobile, always full width
           !isMobile && sidebarOpen ? "ml-96" : "ml-0"
         )}>
-          <ChatInterface currentSessionId={currentSessionId} />
+          <ChatInterface 
+            currentSessionId={currentSessionId} 
+            onSessionSelect={handleSessionSelect}
+          />
         </main>
       </div>
     </div>

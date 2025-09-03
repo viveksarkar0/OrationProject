@@ -22,9 +22,10 @@ interface Message {
 
 interface ChatInterfaceProps {
   currentSessionId: string | null
+  onSessionSelect?: (sessionId: string) => void
 }
 
-export function ChatInterface({ currentSessionId }: ChatInterfaceProps) {
+export function ChatInterface({ currentSessionId, onSessionSelect }: ChatInterfaceProps) {
   const { data: session } = useSession()
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -41,6 +42,9 @@ export function ChatInterface({ currentSessionId }: ChatInterfaceProps) {
       staleTime: 0
     }
   )
+
+  // Create session mutation using tRPC
+  const createSessionMutation = trpc.chat.createSession.useMutation()
 
   // Send message mutation using tRPC
   const sendMessageMutation = trpc.chat.sendMessage.useMutation({
@@ -102,17 +106,48 @@ export function ChatInterface({ currentSessionId }: ChatInterfaceProps) {
   }, [messages])
 
   const handleSendMessage = async () => {
-    if (!input.trim() || !currentSessionId || isLoading) return
+    if (!input.trim() || isLoading) return
 
     const messageContent = input.trim()
     setInput('')
     setIsLoading(true)
 
-    // Use tRPC mutation to send message
-    sendMessageMutation.mutate({
-      sessionId: currentSessionId,
-      content: messageContent,
-    })
+    // If no current session, create one first
+    if (!currentSessionId) {
+      try {
+        const userId = (session?.user as { id?: string })?.id
+        if (!userId) {
+          console.error('No user ID available')
+          setIsLoading(false)
+          return
+        }
+
+        const newSession = await createSessionMutation.mutateAsync({
+          title: `Career Chat ${new Date().toLocaleTimeString()}`,
+          userId: userId
+        })
+
+        // Update current session
+        if (onSessionSelect) {
+          onSessionSelect(newSession.id)
+        }
+
+        // Send message to the new session
+        sendMessageMutation.mutate({
+          sessionId: newSession.id,
+          content: messageContent,
+        })
+      } catch (error) {
+        console.error('Failed to create session:', error)
+        setIsLoading(false)
+      }
+    } else {
+      // Use tRPC mutation to send message to existing session
+      sendMessageMutation.mutate({
+        sessionId: currentSessionId,
+        content: messageContent,
+      })
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
