@@ -21,24 +21,34 @@ import { useSession } from 'next-auth/react'
 interface ChatSidebarProps {
   isOpen: boolean
   onToggle: () => void
+  currentSessionId: string | null
+  onSessionSelect: (sessionId: string | null) => void
+  isMobile?: boolean
 }
 
-export function ChatSidebar({ isOpen, onToggle }: ChatSidebarProps) {
+export function ChatSidebar({ isOpen, onToggle, currentSessionId, onSessionSelect, isMobile = false }: ChatSidebarProps) {
   const { data: session } = useSession()
   const [searchQuery, setSearchQuery] = useState('')
-  const { currentSessionId, setCurrentSession } = useChatStore()
+  const { setCurrentSession } = useChatStore()
   
   const userId = (session?.user as { id?: string })?.id
   const { data: chatSessions, isLoading } = trpc.chat.getSessions.useQuery(
     { userId },
-    { enabled: !!userId }
+    { 
+      enabled: !!userId,
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 2, // Cache for 2 minutes
+      retry: 2
+    }
   )
 
   const utils = trpc.useUtils()
   const createSessionMutation = trpc.chat.createSession.useMutation({
-    onSuccess: () => {
+    onSuccess: (newSession) => {
       // Refetch sessions after creating new one
       utils.chat.getSessions.invalidate()
+      // Immediately switch to the new session
+      onSessionSelect(newSession.id)
     }
   })
 
@@ -48,7 +58,7 @@ export function ChatSidebar({ isOpen, onToggle }: ChatSidebarProps) {
       utils.chat.getSessions.invalidate()
       // If deleted session was current, clear current session
       if (currentSessionId) {
-        setCurrentSession('')
+        onSessionSelect(null)
       }
     }
   })
@@ -62,6 +72,7 @@ export function ChatSidebar({ isOpen, onToggle }: ChatSidebarProps) {
         userId: userId
       })
       setCurrentSession(newSession.id)
+      onSessionSelect(newSession.id)
       // Invalidate and refetch sessions
       await utils.chat.getSessions.invalidate()
     } catch (error) {
@@ -76,7 +87,10 @@ export function ChatSidebar({ isOpen, onToggle }: ChatSidebarProps) {
   return (
     <>
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-96 bg-gradient-to-b from-white/95 via-slate-50/90 to-blue-50/85 dark:from-slate-900/95 dark:via-slate-800/90 dark:to-blue-950/85 backdrop-blur-2xl border-r border-slate-200/60 dark:border-slate-700/60 transition-all duration-500 shadow-2xl shadow-blue-500/10 dark:shadow-blue-900/20 flex flex-col",
+        "fixed inset-y-0 left-0 bg-gradient-to-b from-white/95 via-slate-50/90 to-blue-50/85 dark:from-slate-900/95 dark:via-slate-800/90 dark:to-blue-950/85 backdrop-blur-2xl border-r border-slate-200/60 dark:border-slate-700/60 transition-all duration-500 shadow-2xl shadow-blue-500/10 dark:shadow-blue-900/20 flex flex-col",
+        // Mobile: full screen overlay with higher z-index
+        // Desktop: fixed width sidebar
+        isMobile ? "z-50 w-full max-w-sm" : "z-50 w-96",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex flex-col h-full min-h-0 relative overflow-hidden">
@@ -87,7 +101,7 @@ export function ChatSidebar({ isOpen, onToggle }: ChatSidebarProps) {
             <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full blur-md animate-pulse" style={{animationDelay: '2s'}}></div>
           </div>
           {/* Header */}
-          <div className="relative flex items-center justify-between p-6 border-b border-gradient-to-r from-slate-200/60 via-blue-200/50 to-purple-200/40 dark:from-slate-700/60 dark:via-blue-800/50 dark:to-purple-800/40 bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-purple-50/90 dark:from-blue-950/60 dark:via-indigo-950/50 dark:to-purple-950/60 backdrop-blur-xl">
+          <div className="relative flex items-center justify-between p-6 border-b border-slate-200/40 dark:border-slate-700/40 bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-purple-50/90 dark:from-blue-950/60 dark:via-indigo-950/50 dark:to-purple-950/60 backdrop-blur-xl">
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-xl shadow-blue-500/30 transform hover:scale-110 transition-all duration-300">
@@ -192,7 +206,10 @@ export function ChatSidebar({ isOpen, onToggle }: ChatSidebarProps) {
                         ? "bg-gradient-to-br from-blue-50/90 via-indigo-50/80 to-purple-50/90 dark:from-blue-950/60 dark:via-indigo-950/50 dark:to-purple-950/60 border-blue-300/60 dark:border-blue-700/60 shadow-lg shadow-blue-500/15 ring-1 ring-blue-200/50 dark:ring-blue-800/50" 
                         : "bg-white/90 dark:bg-slate-800/90 border-slate-200/40 dark:border-slate-700/40 hover:bg-white/95 dark:hover:bg-slate-800/95 hover:border-blue-300/40 dark:hover:border-blue-600/40"
                     )}
-                    onClick={() => setCurrentSession(session.id)}
+                    onClick={() => {
+                      setCurrentSession(session.id)
+                      onSessionSelect(session.id)
+                    }}
                   >
                     {/* Active indicator */}
                     {currentSessionId === session.id && (
@@ -258,7 +275,7 @@ export function ChatSidebar({ isOpen, onToggle }: ChatSidebarProps) {
                             ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
                             : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
                         )}>
-                          Active
+                          {currentSessionId === session.id ? 'Active' : 'Saved'}
                         </div>
                       </div>
                       

@@ -1,11 +1,12 @@
 import { google } from '@ai-sdk/google'
-import { streamText } from 'ai'
-import { NextRequest } from 'next/server'
+import { generateText } from 'ai'
+import { NextRequest, NextResponse } from 'next/server'
 
 const model = google('gemini-1.5-flash')
 
 export async function POST(req: NextRequest) {
-  const { messages } = await req.json()
+  try {
+    const { message, history } = await req.json()
 
   const systemPrompt = `You are an expert AI career counselor with extensive experience helping professionals at all career stages. Your expertise includes:
 
@@ -32,12 +33,36 @@ export async function POST(req: NextRequest) {
 
 Always maintain a supportive, professional tone while being direct and helpful. Focus on practical solutions and measurable outcomes.`
 
-  const result = await streamText({
-    model,
-    system: systemPrompt,
-    messages,
-    temperature: 0.7,
-  })
+    // Convert history to proper format
+    interface MessageType {
+      role: 'user' | 'assistant'
+      content: string
+    }
+    
+    const conversationMessages = [
+      ...history.map((msg: MessageType) => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      {
+        role: 'user' as const,
+        content: message
+      }
+    ]
 
-  return result.toTextStreamResponse()
+    const { text } = await generateText({
+      model,
+      system: systemPrompt,
+      messages: conversationMessages,
+      temperature: 0.7,
+    })
+
+    return NextResponse.json({ response: text })
+  } catch (error) {
+    console.error('Chat API error:', error)
+    return NextResponse.json(
+      { error: 'Failed to generate response' },
+      { status: 500 }
+    )
+  }
 }

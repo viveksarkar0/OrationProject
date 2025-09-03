@@ -85,7 +85,7 @@ export const chatRouter = router({
       })
     }),
 
-  // Send a message and get AI response
+  // Send a message and get AI response - combined approach
   sendMessage: publicProcedure
     .input(z.object({
       sessionId: z.string(),
@@ -114,59 +114,22 @@ export const chatRouter = router({
             createdAt: 'asc',
           },
         })
-        console.log('Retrieved messages:', messages.length)
 
-        // Generate AI response using Vercel AI SDK
-        const systemPrompt = `You are a professional AI Career Counselor with expertise in career development, strategic planning, and professional growth. You provide structured, actionable guidance to help professionals advance their careers.
+        // Simple system prompt
+        const systemPrompt = `You are a professional AI Career Counselor. Provide helpful, concise career guidance. Keep responses under 200 words and be direct.`
 
-PROFESSIONAL RESPONSE GUIDELINES:
-- Use clear, professional language with proper structure
-- Format responses with headings (##), subheadings (**bold**), and bullet points for clarity
-- Provide specific, actionable recommendations
-- Include relevant industry insights and best practices
-- Ask targeted follow-up questions to gather more context
-- Maintain a supportive yet professional tone
-- NEVER use asterisks (*) for formatting - use proper markdown headings and bullet points
-
-STRUCTURE YOUR RESPONSES:
-## Career Analysis
-
-**Situation Assessment**
-- Current status evaluation
-- Key challenges identified
-- Opportunities for growth
-
-**Strategic Recommendations**
-- Specific action items
-- Timeline for implementation
-- Resource suggestions
-
-**Next Steps**
-- Immediate actions to take
-- Long-term planning considerations
-- Follow-up recommendations
-
-**Questions for You**
-- What specific aspect would you like to explore further?
-- Are there particular challenges you're facing?
-- What timeline are you working with?
-
-Always provide value-driven, professional guidance that helps users make informed career decisions. Use proper headings and formatting for clarity.`
-
-        // Prepare conversation context with proper typing
+        // Prepare conversation context
         const conversationMessages = messages.map((msg) => ({
           role: msg.role as 'user' | 'assistant',
           content: msg.content,
         }))
-        console.log('Prepared conversation messages for AI')
 
         const { text: aiResponse } = await generateText({
           model,
           system: systemPrompt,
           messages: conversationMessages,
-          temperature: 0.7,
+          temperature: 0.3,
         })
-        console.log('AI response generated:', aiResponse.substring(0, 100) + '...')
 
         // Save AI response
         const assistantMessage = await ctx.db.message.create({
@@ -176,7 +139,6 @@ Always provide value-driven, professional guidance that helps users make informe
             chatSessionId: input.sessionId,
           },
         })
-        console.log('Assistant message saved:', assistantMessage)
 
         // Update session timestamp
         await ctx.db.chatSession.update({
