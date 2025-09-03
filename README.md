@@ -1,5 +1,7 @@
 # Career Counselor AI 🚀
 
+https://www.loom.com/share/c3049a30dbd246d9beb1dc74a88f0d8a?sid=a50cb66e-1345-4e46-a0d3-1ec3d54f07bd
+
 A modern, production-level AI-powered career counseling SaaS platform built with Next.js, TypeScript, and cutting-edge technologies. Get personalized career guidance, job search strategies, and professional advice from our advanced AI counselor.
 
 ## 📋 Submission Checklist
